@@ -1,5 +1,8 @@
 package edu.Donia.Exam.model;
 
+
+
+
 public class LoginRequest {
     private String pseudo;
     private String password;

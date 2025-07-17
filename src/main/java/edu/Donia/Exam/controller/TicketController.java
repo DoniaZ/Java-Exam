@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/tickets")
@@ -25,8 +26,6 @@ public class TicketController {
     @Autowired
     private UserDao userDao;
 
-
-
     @PostMapping
     @Operation(summary = "Créer un nouveau ticket")
     public ResponseEntity<Ticket> createTicket(@Valid @RequestBody Ticket ticket) {
@@ -35,17 +34,15 @@ public class TicketController {
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userDao.findByPseudo(auth.getName()).orElse(null);
-        if (currentUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        ticket.setResolu(false);
-        ticket.setSubmitter(currentUser);
-
-        Ticket savedTicket = ticketDao.save(ticket);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(savedTicket);
+        
+        return userDao.findByPseudo(auth.getName())
+                .map(currentUser -> {
+                    ticket.setResolu(false);
+                    ticket.setSubmitter(currentUser);
+                    Ticket savedTicket = ticketDao.save(ticket);
+                    return ResponseEntity.status(HttpStatus.CREATED).body(savedTicket);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
     @GetMapping
@@ -75,21 +72,18 @@ public class TicketController {
     @Operation(summary = "Marquer un ticket comme résolu (admin seulement)")
     public ResponseEntity<Ticket> resolveTicket(@PathVariable Integer id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = userDao.findByPseudo(auth.getName()).orElse(null);
         
-        if (currentUser == null || !currentUser.getAdmin()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        }
-
-        return ticketDao.findById(id)
-                .map(ticket -> {
-                    ticket.setResolu(true);
-                    ticket.setResolver(currentUser);
-                    Ticket savedTicket = ticketDao.save(ticket);
-                    return ResponseEntity.ok(savedTicket);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        return userDao.findByPseudo(auth.getName())
+                .filter(User::getAdmin)
+                .flatMap(currentUser -> 
+                    ticketDao.findById(id)
+                            .map(ticket -> {
+                                ticket.setResolu(true);
+                                ticket.setResolver(currentUser);
+                                return ticketDao.save(ticket);
+                            })
+                )
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
-
-
 } 
