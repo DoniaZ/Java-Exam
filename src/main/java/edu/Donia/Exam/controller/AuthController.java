@@ -1,7 +1,7 @@
 package edu.Donia.Exam.controller;
-
 import edu.Donia.Exam.dao.UserDao;
 import edu.Donia.Exam.model.User;
+import edu.Donia.Exam.model.LoginRequest;
 import edu.Donia.Exam.security.JwtUtils;
 import edu.Donia.Exam.security.AppUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
@@ -57,16 +57,5 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
-    }
-
-    public static class LoginRequest {
-        private String pseudo;
-        private String password;
-
-        public String getPseudo() { return pseudo; }
-        public void setPseudo(String pseudo) { this.pseudo = pseudo; }
-
-        public String getPassword() { return password; }
-        public void setPassword(String password) { this.password = password; }
     }
 } 
