@@ -86,4 +86,59 @@ public class TicketController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
     }
+
+    @GetMapping("/my-tickets")
+    @Operation(summary = "Récupérer les tickets créés par l'utilisateur connecté")
+    public ResponseEntity<List<Ticket>> getMyTickets() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        return userDao.findByPseudo(auth.getName())
+                .map(currentUser -> {
+                    List<Ticket> myTickets = ticketDao.findBySubmitterId(currentUser.getId());
+                    return ResponseEntity.ok(myTickets);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
+    }
+
+    @GetMapping("/resolved-by-me")
+    @Operation(summary = "Récupérer les tickets résolus par l'utilisateur connecté (admin seulement)")
+    public ResponseEntity<List<Ticket>> getTicketsResolvedByMe() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        return userDao.findByPseudo(auth.getName())
+                .filter(User::getAdmin)
+                .map(currentUser -> {
+                    List<Ticket> resolvedTickets = ticketDao.findByResolverId(currentUser.getId());
+                    return ResponseEntity.ok(resolvedTickets);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+    }
+
+    @GetMapping("/user/{userId}/tickets")
+    @Operation(summary = "Récupérer les tickets créés par un utilisateur spécifique (admin seulement)")
+    public ResponseEntity<List<Ticket>> getTicketsByUser(@PathVariable Integer userId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        return userDao.findByPseudo(auth.getName())
+                .filter(User::getAdmin)
+                .map(currentUser -> {
+                    List<Ticket> userTickets = ticketDao.findBySubmitterId(userId);
+                    return ResponseEntity.ok(userTickets);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+    }
+
+    @GetMapping("/resolved-by/{userId}")
+    @Operation(summary = "Récupérer les tickets résolus par un utilisateur spécifique (admin seulement)")
+    public ResponseEntity<List<Ticket>> getTicketsResolvedByUser(@PathVariable Integer userId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        
+        return userDao.findByPseudo(auth.getName())
+                .filter(User::getAdmin)
+                .map(currentUser -> {
+                    List<Ticket> resolvedTickets = ticketDao.findByResolverId(userId);
+                    return ResponseEntity.ok(resolvedTickets);
+                })
+                .orElse(ResponseEntity.status(HttpStatus.FORBIDDEN).build());
+    }
 } 
