@@ -1,17 +1,42 @@
-# Utiliser une image de base officielle Java
-FROM openjdk:17-jdk-alpine
+# Build stage
+FROM maven:3.9.5-openjdk-17 AS build
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Définir le répertoire de travail
+# Runtime stage
+FROM openjdk:17-jre-alpine
 WORKDIR /app
 
-# Copier le fichier JAR de l'application dans le conteneur
-COPY target/app.jar app.jar
+# Install necessary packages
+RUN apk add --no-cache tzdata
 
-# Copier le fichier .env dans le conteneur
-COPY .env .env
+# Set timezone
+ENV TZ=Europe/Paris
 
-# Exposer le port sur lequel l'application va tourner
+# Create non-root user
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
+# Copy the built JAR from build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Copy environment file if it exists
+COPY --chown=appuser:appgroup .env* ./
+
+# Change ownership of the app directory
+RUN chown -R appuser:appgroup /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
 EXPOSE 8080
 
-# Commande pour exécuter l'application
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+
+# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
