@@ -1,10 +1,8 @@
 package edu.Donia.Exam.model;
-
 import com.fasterxml.jackson.annotation.JsonView;
 import edu.Donia.Exam.view.PriorityView;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

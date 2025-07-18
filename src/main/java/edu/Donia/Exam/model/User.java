@@ -1,5 +1,4 @@
 package edu.Donia.Exam.model;
-
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonView;
 import edu.Donia.Exam.view.UserView;
@@ -10,7 +9,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-
 import java.util.List;
 
 @Entity
