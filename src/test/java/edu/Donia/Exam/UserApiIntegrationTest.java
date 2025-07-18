@@ -41,7 +41,6 @@ public class UserApiIntegrationTest {
                 .apply(springSecurity())
                 .build();
         
-        // Nettoyer la base de données avant chaque test
         userDao.deleteAll();
     }
 

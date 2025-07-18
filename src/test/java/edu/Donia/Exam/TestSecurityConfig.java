@@ -30,7 +30,11 @@ public class TestSecurityConfig {
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/users/register").permitAll()
-                .requestMatchers("/api/tickets/**/resolve").hasRole("ADMIN")
+                .requestMatchers("/api/tickets/*/resolve").hasRole("ADMIN")
+                .requestMatchers("/api/tickets/**").permitAll()
+                .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/api/priorities/**").permitAll()
+                .requestMatchers("/api/categories/**").permitAll()
                 .anyRequest().authenticated()
             );
 
