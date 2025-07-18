@@ -12,4 +12,4 @@ public interface UserDao extends JpaRepository<User, Integer> {
     Optional<User> findByPseudo(String pseudo);
     
     boolean existsByPseudo(String pseudo);
-} 
+}
